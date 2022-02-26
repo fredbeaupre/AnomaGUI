@@ -1,0 +1,2 @@
+Name,Accuracy,TPR,FPR,Num FP,Num FN
+Fred,0.55,0.25,0.25,3,6,20
