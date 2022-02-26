@@ -39,7 +39,7 @@ def write_results(acc, tposrate, fposrate, numfp, numfn, name=PARTICIPANT_NAME):
     global index
     with open("{}.csv".format(name), 'w', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
-        header = ['Name', 'Accuracy', 'TPR', 'FPR', 'Num FP', 'Num FN']
+        header = ['Name', 'Accuracy', 'TPR', 'FPR', 'FP', 'FN', 'Classified']
         writer.writerow(header)
         writer.writerow([PARTICIPANT_NAME, round(acc, 3), round(tposrate, 3), round(fposrate, 3),
                         numfp, numfn, index])
