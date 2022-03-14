@@ -1,2 +1,2 @@
 Name,Accuracy,TPR,FPR,FP,FN,Classified
-Fred,0.8,0.75,0.167,1,1,10
+Fred,0.718,0.636,0.224,72,83,549

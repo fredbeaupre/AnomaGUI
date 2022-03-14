@@ -75,6 +75,7 @@ def get_test_labels(paths):
 # test_images = test_paths[:10]
 # test_labels, num_normal, num_anom = get_test_labels(test_images)
 test_images = get_paths()
+np.random.shuffle(test_images)
 test_labels, num_normal, num_anom = get_test_labels(test_images)
 
 fps = 0
