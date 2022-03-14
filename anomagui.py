@@ -16,7 +16,7 @@ ACTIN_TEST_DIR = "./actin/test"
 TUBULIN_TRAIN_DIR = "./tubulin/train"
 TUBULIN_TEST_DIR = "./tubulin/test"
 
-PARTICIPANT_NAME = 'Fred'
+PARTICIPANT_NAME = 'Fred'  # Change this to your name
 
 global fps
 global fns
