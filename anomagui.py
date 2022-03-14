@@ -6,6 +6,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from PIL import Image, ImageTk
 import cv2 as cv
 import csv
+from build_testpaths import get_paths
+import warnings
+warnings.filterwarnings("ignore")
 
 ACTIN_TRAIN_DIR = "./actin/train"
 ACTIN_TEST_DIR = "./actin/test"
@@ -61,15 +64,17 @@ def get_test_labels(paths):
     return labels, num_normal, num_anom
 
 
-paths1 = [file_name for file_name in os.listdir(
-    ACTIN_TEST_DIR) if file_name.lower().endswith('.npz')]
-paths1 = [os.path.join(ACTIN_TEST_DIR, p) for p in paths1]
-paths2 = [file_name for file_name in os.listdir(
-    TUBULIN_TEST_DIR) if file_name.lower().endswith('.npz')]
-paths2 = [os.path.join(TUBULIN_TEST_DIR, p) for p in paths2]
-test_paths = paths1 + paths2
-np.random.shuffle(test_paths)
-test_images = test_paths[:20]
+# paths1 = [file_name for file_name in os.listdir(
+#     ACTIN_TEST_DIR) if file_name.lower().endswith('.npz')]
+# paths1 = [os.path.join(ACTIN_TEST_DIR, p) for p in paths1]
+# paths2 = [file_name for file_name in os.listdir(
+#     TUBULIN_TEST_DIR) if file_name.lower().endswith('.npz')]
+# paths2 = [os.path.join(TUBULIN_TEST_DIR, p) for p in paths2]
+# test_paths = paths1 + paths2
+# np.random.shuffle(test_paths)
+# test_images = test_paths[:10]
+# test_labels, num_normal, num_anom = get_test_labels(test_images)
+test_images = get_paths()
 test_labels, num_normal, num_anom = get_test_labels(test_images)
 
 fps = 0
@@ -99,6 +104,7 @@ def next_img():
     global tps
     global tns
     try:
+        print("Image {} of {}".format(index + 1, len(images)))
         img = images[index]  # get the next image from the iterator
     except:
         print("\nYour results: \n")
@@ -109,9 +115,9 @@ def next_img():
         print("True positive rate: {}".format(true_positive_rate(tps, fns)))
         print("False positive rate: {}".format(false_positive_rate(fps, tns)))
 
-        np.savetxt('false_positives.csv', np.array(
+        np.savetxt('false_positives_{}.csv'.format(PARTICIPANT_NAME), np.array(
             fp_files), delimiter=',', fmt='%s')
-        np.savetxt('false_negatives.csv', np.array(
+        np.savetxt('false_negatives_{}.csv'.format(PARTICIPANT_NAME), np.array(
             fn_files), delimiter=',', fmt='%s')
         # if there are no more images, do nothing
 
@@ -145,7 +151,6 @@ def next_img_anom():
     global images
     global correct
     global tps
-    print("\n{}".format(images[index]))
     if labels[index] != 1:
         fps += 1
         fp_files.append(images[index])
@@ -166,7 +171,6 @@ def next_img_normal():
     global images
     global correct
     global tns
-    print("\n{}".format(images[index]))
     if labels[index] != 0:
         fns += 1
         fn_files.append(images[index])

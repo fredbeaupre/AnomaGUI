@@ -1,0 +1,5 @@
+numpy==1.20.3
+tk
+matplotlib==3.4.3
+Pillow==8.4.0
+opencv-python==4.5.5.*
