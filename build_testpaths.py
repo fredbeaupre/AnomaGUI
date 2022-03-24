@@ -5,6 +5,9 @@ tubulin_test_paths = "./tubulin/test"
 
 
 def get_paths():
+    """
+    Gets the filename from the actin/tubulin directories so as to maintain the order in which the model scored the samples
+    """
     paths = np.genfromtxt('./test_paths.csv', delimiter=',', dtype=None)
     scores = np.genfromtxt('./test_scores.csv', delimiter=',')
     test_paths = []
@@ -15,7 +18,7 @@ def get_paths():
         name = p[-1][:-5]
         filename = "./{}/test/{}.npz".format(structure, name)
         test_paths.append(filename)
-    return test_paths
+    return test_paths, scores
 
 
 def main():

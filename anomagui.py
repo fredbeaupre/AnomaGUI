@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 import tkinter as tk
 import matplotlib.pyplot as plt
@@ -8,6 +9,7 @@ import cv2 as cv
 import csv
 from build_testpaths import get_paths
 import warnings
+from figure_generator import generate_distributions
 warnings.filterwarnings("ignore")
 
 ACTIN_TRAIN_DIR = "./actin/train"
@@ -18,6 +20,8 @@ TUBULIN_TEST_DIR = "./tubulin/test"
 
 PARTICIPANT_NAME = 'Fred'  # Change this to your name
 
+
+# Will be updated within functions
 global fps
 global fns
 global tps
@@ -26,10 +30,13 @@ global fp_files
 global fn_files
 global index
 global labels
-global images
 global correct
+global stats
+global start
+global end
 
 
+# Helpers
 def false_positive_rate(fp, tn):
     return fp / (fp + tn)
 
@@ -64,18 +71,8 @@ def get_test_labels(paths):
     return labels, num_normal, num_anom
 
 
-# paths1 = [file_name for file_name in os.listdir(
-#     ACTIN_TEST_DIR) if file_name.lower().endswith('.npz')]
-# paths1 = [os.path.join(ACTIN_TEST_DIR, p) for p in paths1]
-# paths2 = [file_name for file_name in os.listdir(
-#     TUBULIN_TEST_DIR) if file_name.lower().endswith('.npz')]
-# paths2 = [os.path.join(TUBULIN_TEST_DIR, p) for p in paths2]
-# test_paths = paths1 + paths2
-# np.random.shuffle(test_paths)
-# test_images = test_paths[:10]
-# test_labels, num_normal, num_anom = get_test_labels(test_images)
-test_images = get_paths()
-np.random.shuffle(test_images)
+# setting global vars
+test_images, anom_scores = get_paths()
 test_labels, num_normal, num_anom = get_test_labels(test_images)
 
 fps = 0
@@ -86,13 +83,19 @@ correct = 0
 fp_files = []
 fn_files = []
 index = 0
+start = time.time()
+
 labels = test_labels
 images = test_images
 num_classified = 0
+classifications = np.zeros(shape=(len(images), 4))
+# number of test_samples * (pred, rating, score, decision_time)
 
 
+# init tkinter app
 win = tk.Tk()
 win.geometry('500x500')  # set window size
+win.configure(bg='black')
 
 panel = tk.Label(win)
 panel.pack()
@@ -104,30 +107,34 @@ def next_img():
     global fns
     global tps
     global tns
+    global start
+    global end
     try:
+        # branch if there are still images to display
         print("Image {} of {}".format(index + 1, len(images)))
         img = images[index]  # get the next image from the iterator
     except:
-        print("\nYour results: \n")
-        print("Number of false positives: {}".format(fps))
-        print("Number of false negatives: {}".format(fns))
-        print("Number of correctly labelled samples: {} / {}\n".format(correct,
-              num_anom + num_normal))
-        print("True positive rate: {}".format(true_positive_rate(tps, fns)))
-        print("False positive rate: {}".format(false_positive_rate(fps, tns)))
+        # branch if reached end of test set
+        print("****************************")
+        TPR = true_positive_rate(tps, fns)
+        FPR = false_positive_rate(fps, tns)
+        print("Accuracy: {} / {}, ({}%)".format(correct,
+              num_anom + num_normal, 100 * (correct/(num_anom + num_normal))))
+        print("True positive rate: {}".format(TPR))
+        print("False positive rate: {}".format(FPR))
+        print("****************************")
 
-        np.savetxt('false_positives_{}.csv'.format(PARTICIPANT_NAME), np.array(
-            fp_files), delimiter=',', fmt='%s')
-        np.savetxt('false_negatives_{}.csv'.format(PARTICIPANT_NAME), np.array(
-            fn_files), delimiter=',', fmt='%s')
-        # if there are no more images, do nothing
+        np.savez('./{}.npz'.format(PARTICIPANT_NAME),
+                 classifications=classifications,
+                 fp_errors=fp_files,
+                 fn_errors=fn_files)
 
         write_results(correct/(num_anom + num_normal),
-                      true_positive_rate(tps, fns), false_positive_rate(fps, tns), fps, fns)
-        exit("Thank you for you time!")
+                      TPR, FPR, fps, fns)
 
-    # load the image and display it
-    file_name = img.split('/')[-1]
+        exit('\nThank you for your time!')
+
+    # load the image and display
     img_file = np.load(img)
     img = img_file['arr_0']
     img = cv.normalize(
@@ -142,6 +149,9 @@ def next_img():
     img = ImageTk.PhotoImage(img)
     panel.img = img  # keep a reference so it's not garbage collected
     panel['image'] = img
+    start = time.time()
+
+# When user presses anomaly
 
 
 def next_img_anom():
@@ -152,18 +162,26 @@ def next_img_anom():
     global images
     global correct
     global tps
+    global start
+    global end
+
+    end = time.time()
+    decision_time = end - start
+
     if labels[index] != 1:
         fps += 1
         fp_files.append(images[index])
     else:
         tps += 1
         correct += 1
-    # print("Anomaly")
-    # print(images[index][:-4].split("-")[1])
+    score = anom_scores[index]
+    qual = images[index].split('/')[-1].split('-')[1][:-4]
+    classifications[index] = np.array([1, qual, score, decision_time])
     index += 1
     next_img()
 
 
+# When user presses normal
 def next_img_normal():
     global index
     global fns
@@ -172,22 +190,27 @@ def next_img_normal():
     global images
     global correct
     global tns
+    global start
+    global end
+
+    end = time.time()
+    decision_time = end - start
     if labels[index] != 0:
         fns += 1
         fn_files.append(images[index])
     else:
         tns += 1
         correct += 1
-
-    # print("Normal")
-    # print(images[index][:-4].split("-")[1])
+    score = anom_scores[index]
+    qual = images[index].split('/')[-1].split('-')[1][:-4]
+    classifications[index] = np.array([0, qual, score, decision_time])
     index += 1
     next_img()
 
 
 next_img()
 
-
+# init buttons
 btn_normal = tk.Button(
     win, text='Normal', foreground='lightgreen', font=('calibri', 16, 'bold'), command=next_img_normal)
 btn_normal.pack(expand=True, side=tk.LEFT, fill=tk.BOTH)
