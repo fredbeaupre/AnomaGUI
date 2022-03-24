@@ -212,7 +212,7 @@ next_img()
 
 # init buttons
 btn_normal = tk.Button(
-    win, text='Normal', foreground='lightgreen', font=('calibri', 16, 'bold'), command=next_img_normal)
+    win, text='Normal', foreground='limegreen', font=('calibri', 16, 'bold'), command=next_img_normal)
 btn_normal.pack(expand=True, side=tk.LEFT, fill=tk.BOTH)
 
 btn_anom = tk.Button(win, text='Anomaly',
