@@ -79,13 +79,14 @@ def generate_distributions(name):
     plt.xlabel('Image quality rating', fontsize=12)
     plt.ylabel('Density (# of points)', fontsize=12)
     plt.xlim([0, 1.0])
+    plt.ylim([0, 7])
     plt.legend(fontsize=12)
     plt.show()
     fig.savefig('./{}_qualityrating_distributions.png'.format(name))
 
 
 def main():
-    check_errors('./Flavie/Flavie_fixed')
+    generate_distributions('./Theresa/Theresa')
 
 
 if __name__ == "__main__":
