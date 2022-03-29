@@ -86,7 +86,7 @@ def generate_distributions(name):
 
 
 def main():
-    generate_distributions('./Theresa/Theresa')
+    generate_distributions('./JM/Jean-Mich-Mush')
 
 
 if __name__ == "__main__":
