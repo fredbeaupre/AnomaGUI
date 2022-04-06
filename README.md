@@ -1,12 +1,12 @@
 # AnomaGUI
 
-<img src="https://github.com/fredbeaupre/AnomaGUI/blob/master/anomaguiApp.png" width="400" height="400" margin="auto">
-
 ## Anomaly Detection Problem setup
 
 We have a dataset in which actin and tubulin STED images have been given a quality rating between 0 and 1. The higher the rating, the higher the quality of the image. We define "normal" images to be those with a rating higher than 0.70, and anomalies to be those with a rating smaller than 0.60. Images falling in the 0.6 to 0.7 range have been removed from both train and test sets. We have trained a ResNet on the normal images, so that it learns features reflecting the nature of high quality images, and can then detect low quality images as anomalies. To better evaluate the performance of the model, we would like to compare its performance to that of a human expert in a simple classification task (for each test image: normal or anomaly). If you would like to participate, follow the steps below. Your help is much appreciated.
 
 ## To classifiy
+
+<img src="https://github.com/fredbeaupre/AnomaGUI/blob/master/anomaguiApp.png" width="400" height="400" margin="auto">
 
 1. ` git clone https://github.com/fredbeaupre/AnomaGUI.git`
 2. ` cd AnomaGUI`
