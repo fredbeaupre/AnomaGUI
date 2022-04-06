@@ -19,7 +19,7 @@ We have a dataset in which actin and tubulin STED images have been given a quali
 
 Classifying the whole test set takes about 30 minutes. Be careful not to close the app window before having finished classifying all the images, as then all progress would be lost.
 
-## To reannotate the ambiguous images
+## To reannotate ambiguous images
 
 <img src="https://github.com/fredbeaupre/AnomaGUI/blob/master/reannotatorApp.png" width="400" height="400" margin="auto">
 
