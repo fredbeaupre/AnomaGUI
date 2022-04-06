@@ -23,7 +23,7 @@ Classifying the whole test set takes about 30 minutes. Be careful not to close t
 
 <img src="https://github.com/fredbeaupre/AnomaGUI/blob/master/reannotatorApp.png" width="400" height="400" margin="auto">
 
-If you already have the project cloned on your local machine, you can ignore steps 1-3 below and instead run the following command from root:
+If you already have the project cloned on your local machine, you can ignore steps 1-3 below and instead run the following command from the root of the project:
 
 1. `git pull`
 
