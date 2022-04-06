@@ -7,6 +7,10 @@ plt.style.use('dark_background')
 ANTHONY = './Anthony'
 FLAVIE = './Flavie'
 THERESA = './Theresa'
+CATHERINE = './Catherine'
+JULIA = './Julia'
+JM = './JM'
+ANDREANNE = './Andreanne'
 
 
 def count_error_occurences():
@@ -101,27 +105,38 @@ def main():
 
     # count_error_occurences()
 
-    # qr_labels = get_QR_labels()
-    # antho_data = np.load("{}/Anthony.npz".format(ANTHONY))
-    # flavie_data = np.load("{}/Flavie_fixed.npz".format(FLAVIE))
+    qr_labels = get_QR_labels()
+    julia_data = np.load('{}/Julia.npz'.format(JULIA))
+    cabou_data = np.load('{}/Catherine.npz'.format(CATHERINE))
+    antho_data = np.load("{}/Anthony.npz".format(ANTHONY))
+    flavie_data = np.load("{}/Flavie_fixed.npz".format(FLAVIE))
     theresa_data = np.load("{}/Theresa.npz".format(THERESA))
-    # theresa_labels = theresa_data['classifications']
-    # flavie_labels = flavie_data['classifications']
-    # antho_labels = antho_data['classifications']
-    # flavie_labels = flavie_labels[:, 0]
-    # antho_labels = antho_labels[:, 0]
-    # theresa_labels = theresa_labels[:, 0]
+    andreanne_data = np.load("{}/Andreanne.npz".format(ANDREANNE))
+    jm_data = np.load("{}/Jean-Mich-Mush.npz".format(JM))
+    jm_labels = jm_data['classifications']
+    julia_labels = julia_data['classifications']
+    theresa_labels = theresa_data['classifications']
+    flavie_labels = flavie_data['classifications']
+    antho_labels = antho_data['classifications']
+    cabou_labels = cabou_data['classifications']
+    andreanne_labels = andreanne_data['classifications']
+    julia_labels = julia_labels[:, 0]
+    flavie_labels = flavie_labels[:, 0]
+    antho_labels = antho_labels[:, 0]
+    theresa_labels = theresa_labels[:, 0]
+    cabou_labels = cabou_labels[:, 0]
+    jm_labels = jm_labels[:, 0]
+    andreanne_labels = andreanne_labels[:, 0]
 
     theresa_data_2nd = np.load("{}/Theresa_2ndAnnotation.npz".format(THERESA))
     HQ_mean_score, LQ_mean_score = get_no_agreement_files(
         theresa_data, theresa_data_2nd)
-    print(HQ_mean_score, LQ_mean_score)
-    # theresa_labels_2nd = theresa_data_2nd['classifications']
-    # theresa_labels_2nd = theresa_labels_2nd[:, 0]
+    theresa_labels_2nd = theresa_data_2nd['classifications']
+    theresa_labels_2nd = theresa_labels_2nd[:, 0]
 
     # # computing confusion matrices
     # generate_conf_mat(theresa_labels, theresa_labels_2nd,
-    # 'Theresa-1', 'Theresa-2')
+    #                   'Theresa-1', 'Theresa-2')
     # generate_conf_mat(flavie_labels, antho_labels, 'Flavie', 'Anthony')
     # generate_conf_mat(flavie_labels, theresa_labels, 'Flavie', 'Theresa')
     # generate_conf_mat(antho_labels, theresa_labels, 'Anthony', 'Theresa')
@@ -130,20 +145,59 @@ def main():
     # generate_conf_mat(qr_labels, antho_labels, 'QR', 'Anthony')
     # generate_conf_mat(qr_labels, theresa_labels, 'QR', 'Theresa')
 
-    # # Computing inter-expert agreement
-    # kappa_theresa_squared = cohen_kappa_score(
-    #     theresa_labels, theresa_labels_2nd)
-    # # kappa_flavie_antho = cohen_kappa_score(
-    # #     flavie_labels, antho_labels)
-    # # kappa_flavie_theresa = cohen_kappa_score(flavie_labels, theresa_labels)
-    # # kappa_theresa_antho = cohen_kappa_score(theresa_labels, antho_labels)
-    # # print("Inter-expert agreement results:\n")
-    # # print("\t Flavie-Anthony: {:.3f}".format(kappa_flavie_antho))
-    # # print("\t Flavie-Theresa: {:.3f}".format(kappa_flavie_theresa))
-    # # print("\t Anthony-Theresa: {:.3f}".format(kappa_theresa_antho))
-    # print("\t Theresa-Theresa: {:.3f}".format(kappa_theresa_squared))
-    count_error_occurences()
+    # Computing inter-expert agreement
+    kappa_theresa_squared = cohen_kappa_score(
+        theresa_labels, theresa_labels_2nd)
+    kappa_flavie_antho = cohen_kappa_score(
+        flavie_labels, antho_labels)
+    kappa_flavie_theresa = cohen_kappa_score(flavie_labels, theresa_labels)
+    kappa_theresa_antho = cohen_kappa_score(theresa_labels, antho_labels)
+    kappa_catherine_flavie = cohen_kappa_score(flavie_labels, cabou_labels)
+    kappa_catherine_antho = cohen_kappa_score(cabou_labels, antho_labels)
+    kappa_catherine_theresa = cohen_kappa_score(cabou_labels, theresa_labels)
+    kappa_julia_antho = cohen_kappa_score(julia_labels, antho_labels)
+    kappa_julia_theresa = cohen_kappa_score(julia_labels, theresa_labels)
+    kappa_julia_cabou = cohen_kappa_score(julia_labels, cabou_labels)
+    kappa_julia_flavie = cohen_kappa_score(julia_labels, flavie_labels)
+    kappa_jm_antho = cohen_kappa_score(jm_labels, antho_labels)
+    kappa_jm_cabou = cohen_kappa_score(jm_labels, cabou_labels)
+    kappa_jm_flavie = cohen_kappa_score(jm_labels, flavie_labels)
+    kappa_jm_cabou = cohen_kappa_score(jm_labels, cabou_labels)
+    kappa_jm_theresa = cohen_kappa_score(jm_labels, theresa_labels)
+    kappa_jm_julia = cohen_kappa_score(jm_labels, julia_labels)
+    kappa_and_antho = cohen_kappa_score(andreanne_labels, antho_labels)
+    kappa_and_flavie = cohen_kappa_score(andreanne_labels, flavie_labels)
+    kappa_and_cabou = cohen_kappa_score(andreanne_labels, cabou_labels)
+    kappa_and_theresa = cohen_kappa_score(andreanne_labels, theresa_labels)
+    kappa_and_jm = cohen_kappa_score(andreanne_labels, jm_labels)
+    kappa_and_julia = cohen_kappa_score(andreanne_labels, julia_labels)
+    print("Inter-expert agreement results:\n")
+    print("\t Flavie-Anthony: {:.3f}".format(kappa_flavie_antho))
+    print("\t Flavie-Theresa: {:.3f}".format(kappa_flavie_theresa))
+    print("\t Anthony-Theresa: {:.3f}".format(kappa_theresa_antho))
+    print("\t Theresa-Theresa: {:.3f}".format(kappa_theresa_squared))
+    print("\t Catherine-Anthony: {:.3f}".format(kappa_catherine_antho))
+    print("\t Catherine-Flavie: {:.3f}".format(kappa_catherine_flavie))
+    print("\t Catherine-Theresa: {:.3f}".format(kappa_catherine_theresa))
+    print("\t Julia-Anthony: {:.3f}".format(kappa_julia_antho))
+    print("\t Julia-Catherine: {:.3f}".format(kappa_julia_cabou))
+    print("\t Julia-Flavie: {:.3f}".format(kappa_julia_flavie))
+    print("\t Julia-Theresa: {:.3f}".format(kappa_julia_theresa))
+
+    print("\t JM-Anthony: {:.3f}".format(kappa_jm_antho))
+    print("\t JM-Catherine: {:.3f}".format(kappa_jm_cabou))
+    print("\t JM-Flavie: {:.3f}".format(kappa_jm_flavie))
+    print("\t JM-Julia: {:.3f}".format(kappa_jm_julia))
+    print("\t JM-Theresa: {:.3f}".format(kappa_jm_theresa))
+
+    print("\t Andreanne-Anthony: {:.3f}".format(kappa_and_antho))
+    print("\t Andreanne-Catherine: {:.3f}".format(kappa_and_cabou))
+    print("\t Andreanne-Flavie: {:.3f}".format(kappa_and_flavie))
+    print("\t Andreanne-Julia: {:.3f}".format(kappa_and_julia))
+    print("\t Andreanne-Theresa: {:.3f}".format(kappa_and_theresa))
+    print("\t Andreanne-JM: {:.3f}".format(kappa_and_jm))
 
 
+    # count_error_occurences()
 if __name__ == "__main__":
     main()

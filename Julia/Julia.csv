@@ -1,0 +1,2 @@
+Name,Accuracy,TPR,FPR,FP,FN,Classified
+Julia,0.581,0.943,0.676,217,13,549
