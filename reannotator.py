@@ -61,7 +61,21 @@ def next_img():
         text.config(text='Old rating: {}'.format(rating))
 
 
-def save_annotation(event):
+def save_annotation_enter(event):
+    global img_index
+    global img_updates
+    global img_ids
+    new_rat = float(annotation_entry.get())
+    index_to_add = int(img_ids[img_index])
+    img_updates[img_index, 0] = new_rat
+    img_updates[img_index, 1] = index_to_add
+    img_index += 1
+    annotation_entry.delete(0, tk.END)
+    annotation_entry.insert(0, 'Enter new rating')
+    next_img()
+
+
+def save_annotation_click():
     global img_index
     global img_updates
     global img_ids
@@ -86,9 +100,9 @@ annotation_entry = tk.Entry(win)
 annotation_entry.insert(0, 'Enter new rating')
 annotation_entry.pack(expand=True, side='top')
 btn = tk.Button(win, text='Next', font=(
-    'calibri', 16, 'bold'), command=save_annotation)
+    'calibri', 16, 'bold'), command=save_annotation_click)
 btn.pack(expand=True, fill='y')
-win.bind('<Return>', save_annotation)
+win.bind('<Return>', save_annotation_enter)
 
 
 win.mainloop()
