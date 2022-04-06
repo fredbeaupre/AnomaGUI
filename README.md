@@ -37,4 +37,4 @@ Otherwise:
 4. Change the `NAME` variable (line 14) to your name in the `reannotator.py` file.
 5. Run `python reannotator.py` to launch the tkinter app. You should see a window like the one displayed in the screenshot above, with the image, its old quality rating, a text box to enter a new rating, and a 'Next' button.
 6. For every image displayed, enter the rating you think is appropriate for the quality of the image and click Next, or hit Enter. The next image will be displayed on click/enter.
-7. There are 141 ambiguous images to reannotate. The programm terminates automatically once you have finished reannotating all 141 images. The updated ratings for the corresponding image indices are saved in the file `reannotations.npy` in the folder `<YOUR NAME>`.
+7. There are 141 ambiguous images to reannotate. The program terminates automatically once you have finished reannotating all 141 images. The updated ratings for the corresponding image indices are saved in the file `reannotations.npy` in the folder `<YOUR NAME>`.
