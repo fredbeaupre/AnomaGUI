@@ -1,17 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from build_testpaths import get_paths
+from utils import *
 
-THERESA = './THERESA/Theresa.npz'
+THERESA = './Theresa/Theresa.npz'
 THERESA_2 = './THERESA/Theresa_2ndAnnotation.npz'
 ANTHONY = './ANTHONY/Anthony.npz'
 FLAVIE = './FLAVIE/Flavie_fixed.npz'
 JM = './JM/Jean-Mich-Mush.npz'
 CATHERINE = './Catherine/Catherine.npz'
 JULIA = './Julia/Julia.npz'
-ANDREANNE = 'Andreanne/Andreanne.npz'
+ANDREANNE = './Andreanne/Andreanne.npz'
 
-FILENAMES = [THERESA, CATHERINE, ANTHONY, FLAVIE, JM, JULIA, ANDREANNE]
+FILENAMES = [FLAVIE, ANTHONY, THERESA, JM, CATHERINE, JULIA, ANDREANNE]
+
 
 SINGLE_EXPERT = FLAVIE
 
@@ -53,28 +55,6 @@ def split_qualities(data):
     low_qual = data[data[:, 1] <= 0.60]
     high_qual = data[data[:, 1] >= 0.70]
     return low_qual, high_qual
-
-
-def compute_regret(data, start, truth):
-    regret = start
-    cum_regret = []
-    labels = data[:, 0]
-    N = labels.shape[0]
-    for i in range(N):
-        if labels[i] != truth:
-            regret += 1
-        cum_regret.append(regret)
-    return cum_regret
-
-
-def compute_variance(ary):
-    variance = []
-    N = ary.shape[0]
-    for i in range(10, N):
-        sub_ary = ary[i - 10: i]
-        var = np.std(sub_ary)
-        variance.append(var)
-    return variance
 
 
 def sort_classifications_by_qr(data, image_indices=None, index=1, keep_indices=False):
@@ -167,6 +147,43 @@ def generate_curves():
     fig.savefig('./regret_graph.pdf')
 
 
+def compute_expert_reget(labels, preds):
+    N = labels.shape[0]
+    assert N == preds.shape[0]
+    regret = np.zeros((N, ))
+    for i in range(N):
+        label = labels[i, 1]
+        pred = preds[i]
+        if label != pred:
+            regret[i] = 1
+        else:
+            regret[i] = 0
+    return np.cumsum(regret)
+
+
+def compute_regret(labels, preds):
+    N = labels.shape[0]
+    assert N == preds.shape[0]
+    regret = np.zeros((N, ))
+    for i in range(N):
+        label = labels[i, 1]
+        pred = preds[i, 1]
+        if label != pred:
+            regret[i] = 1
+        else:
+            regret[i] = 0
+    return np.cumsum(regret)
+
+
+def get_expert_regret(labels, file_name):
+    data = np.load(file_name)
+    classifications = data['classifications']
+    sorted_data = sort_classifications_by_qr(classifications)
+    sorted_preds = sorted_data[:, 0]
+    regret = compute_expert_reget(labels, sorted_preds)
+    return regret
+
+
 def average_classification():
     antho_data = np.load(ANTHONY)
     quality_ratings = antho_data['classifications'][:, 1]
@@ -237,42 +254,78 @@ def get_total_errors(single_expert=SINGLE_EXPERT):
 
 
 def single_expert_curves(errors, single_expert=SINGLE_EXPERT):
-    rankings = np.arange(0, len(errors), 1)
-    rankings_low = np.arange(0, 228, 1)
-    rankings_high = np.arange(228, 549, 1)
+    bin_size = 10
+    w = 1
+    paths, scores = load_paths_and_scores()
+    sorted_raw_labels = ratings_to_labels(paths)
+    sorted_ids = sorted_raw_labels[:, 0]
+    sorted_labels = sorted_raw_labels[:, 1]
+    sorted_ids = [int(el) for el in sorted_ids]
     data = np.load(SINGLE_EXPERT)
-    data = data['classifications']
-    sorted_data = sort_classifications_by_qr(data)
-    low_qual, high_qual = split_qualities(data)
-    sorted_low = sort_classifications_by_qr(low_qual)
-    sorted_high = sort_classifications_by_qr(high_qual)
-    regret_low = compute_regret(sorted_low, start=0, truth=1)
-    regret_high = compute_regret(sorted_high, start=regret_low[-1], truth=0)
-    connecting_x = [0.6, 0.7]
-    connecting_y = [regret_low[-1], regret_low[-1]]
+    preds = data['classifications']
+    sorted_preds = sort_classifications_by_qr(preds)
+    sorted_preds = sorted_preds[:, 0]
+    N = sorted_labels.shape[0]
+    assert N == sorted_preds.shape[0]
+    index = 0
+    error_bins = np.zeros((N - bin_size,))
+    for i in range(10, N):
+        bin_labels = sorted_labels[i-bin_size:i]
+        bin_preds = sorted_preds[i-bin_size:i]
+        num_errors = get_bin_errors(bin_labels, bin_preds)
+        error_bins[index] = num_errors
+        index += 1
+
+    model_preds = scores_to_preds(scores)
+    sorted_model_preds = model_preds[sorted_ids]
+    model_error_bins = np.zeros((N - bin_size,))
+    model_index = 0
+    for i in range(10, N):
+        model_bin_labels = sorted_labels[i - bin_size:i]
+        model_bin_preds = sorted_model_preds[i - bin_size:i]
+        num_errors = get_bin_errors(
+            model_bin_labels, model_bin_preds[:, 1])
+        model_error_bins[model_index] = num_errors
+        model_index += 1
 
     fig, axs = plt.subplots(3, 1, figsize=(12, 7), sharex=True)
-    axs[0].plot(rankings, sorted_data[:, 0], color='lightcoral', lw=1)
-    axs[0].set_yticks([0, 1])
-    axs[0].set_yticklabels(['Normal', 'Anomaly'])
+    axs[0].bar(np.arange(0, 539, 1), model_error_bins,
+               color='steelblue', width=w)
     axs[0].axvline(x=228.5, ymin=0, ymax=1, color='black',
                    ls='--', label='0.6 - 0.7 gap', lw=0.8)
-    axs[0].set_title('Expert 1 classifications')
+    axs[0].set_title('Model')
+    axs[0].set_ylabel('Number of errors\n per 10-image bin')
     axs[0].legend()
-    axs[1].plot(rankings_low, regret_low, color='lightcoral', lw=3)
-    axs[1].plot(rankings_high, regret_high, color='lightcoral', lw=3)
-    # axs[1].plot(connecting_x, connecting_y, color='lightcoral', ls='--')
+
+    # REGRET
+    regret = compute_regret(sorted_raw_labels, sorted_model_preds)
+    expert1_regret = get_expert_regret(
+        sorted_raw_labels, './Flavie/Flavie_fixed.npz')
+    julia_regret = get_expert_regret(sorted_raw_labels, './Julia/Julia.npz')
+    rankings = np.arange(0, 549, 1)
+    axs[2].plot(rankings, regret, color='steelblue', lw=2, label='Model')
+    axs[2].plot(rankings, expert1_regret,
+                color='lightcoral', lw=2, label='Expert 1')
+    axs[2].plot(rankings, julia_regret, color='green', lw=2, label='Expert 6')
+    axs[2].axvline(x=228.5, ymin=0, ymax=1, color='black',
+                   ls='--', label='0.6 - 0.7 gap', lw=0.8)
+    axs[2].legend()
+    axs[2].set_ylabel('Cumulative\nregret')
+
+    axs[1].bar(np.arange(0, 539, 1), error_bins, color='lightcoral', width=w)
+    axs[1].set_xlabel('Images ranked by quality rating')
+    axs[1].set_ylabel('Number of errors\n per 10-image bin')
     axs[1].axvline(x=228.5, ymin=0, ymax=1, color='black',
                    ls='--', label='0.6 - 0.7 gap', lw=0.8)
-    axs[1].legend()
-    axs[1].set_ylabel('Cumulative\nregret')
-    axs[1].set_title('Expert 1 regret')
-    axs[2].bar(rankings, errors, color='steelblue')
-    axs[2].set_xlabel('Images ranked by quality rating')
-    axs[2].set_ylabel('Expert errors\nper image')
-    axs[2].set_ylim([0, 7])
-    axs[2].set_title('All 7 experts errors')
-    fig.savefig('./Flavie/classifications_regret_all_errors.pdf')
+    axs[1].legend(loc='upper left')
+    axs[1].set_title('Expert 1')
+    fig.savefig('./Flavie/flavie_vs_model_and_regret.pdf')
+    # axs[2].bar(rankings, errors, color='steelblue')
+    # axs[2].set_xlabel('Images ranked by quality rating')
+    # axs[2].set_ylabel('Expert errors\nper image')
+    # axs[2].set_ylim([0, 7])
+    # axs[2].set_title('All 7 experts errors')
+    # fig.savefig('./Flavie/classifications_regret_all_errors.pdf')
 
 
 def check_ambiguous_imgs(indices):
@@ -295,10 +348,62 @@ def check_ambiguous_imgs(indices):
              paths=paths_to_check, ids=ids_to_check)
 
 
+def get_bin_errors(bin_labels, bin_preds):
+    num_errors = 0
+    for label, pred in zip(bin_labels, bin_preds):
+        if label != pred:
+            num_errors += 1
+    return num_errors
+
+
+def tenfold_errors(dest='./10fold_errors.pdf', experts=FILENAMES):
+    w = 1
+    bin_size = 10
+    paths, scores = load_paths_and_scores()
+    sorted_labels = ratings_to_labels(paths)
+    sorted_ids = sorted_labels[:, 0]
+    sorted_labels = sorted_labels[:, 1]
+    sorted_ids = [int(el) for el in sorted_ids]
+    fig, axs = plt.subplots(2, 4, figsize=(13, 7))
+    col_id = 0
+    row_id = 0
+    for j, expert in enumerate(experts):
+        data = np.load(expert)
+        preds = data['classifications']
+        sorted_preds = sort_classifications_by_qr(preds)
+        sorted_preds = sorted_preds[:, 0]
+        N = sorted_labels.shape[0]
+        error_bins = np.zeros((N - bin_size,))
+        assert N == sorted_preds.shape[0]
+        index = 0
+        for i in range(10, N):
+            bin_labels = sorted_labels[i - bin_size:i]
+            bin_preds = sorted_preds[i-bin_size:i]
+            num_errors = get_bin_errors(bin_labels, bin_preds)
+            error_bins[index] = num_errors
+            index += 1
+        axs[row_id][col_id].bar(np.arange(0, 539, 1),
+                                error_bins, color='steelblue', width=w)
+        axs[row_id][col_id].set_xlabel(
+            '10-image bins\nranked by QR')
+        axs[row_id][col_id].set_ylabel('Number of errors\n per bin')
+        axs[row_id][col_id].set_title('Expert {}'.format(j+1))
+        axs[row_id][col_id].axvline(x=228.5, ymin=0, ymax=1, color='black',
+                                    ls='--', label='0.6 - 0.7 gap', lw=0.8)
+        if row_id == 1:
+            row_id = 0
+            col_id += 1
+        else:
+            row_id += 1
+    plt.tight_layout()
+    plt.show()
+
+
 def main():
+    # tenfold_errors('./Anthony/10fold_errors.pdf')
     sorted_errors, img_ids_to_check = get_total_errors()
-    check_ambiguous_imgs(img_ids_to_check)
-    # single_expert_curves(sorted_errors)
+    # check_ambiguous_imgs(img_ids_to_check)
+    single_expert_curves(sorted_errors)
 
 
 if __name__ == "__main__":
