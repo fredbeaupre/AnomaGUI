@@ -85,7 +85,6 @@ def save_annotation_click():
     img_updates[img_index, 1] = index_to_add
     img_index += 1
     annotation_entry.delete(0, tk.END)
-    annotation_entry.insert(0, 'Enter new rating')
     next_img()
 
 
@@ -97,7 +96,6 @@ rating = img_path.split('/')[-1].split('-')[-1][:-4]
 text = tk.Label(win, text='Old rating: {}'.format(rating))
 text.pack()
 annotation_entry = tk.Entry(win)
-annotation_entry.insert(0, 'Enter new rating')
 annotation_entry.pack(expand=True, side='top')
 btn = tk.Button(win, text='Next', font=(
     'calibri', 16, 'bold'), command=save_annotation_click)
