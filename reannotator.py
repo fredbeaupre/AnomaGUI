@@ -15,10 +15,10 @@ NAME = 'FRED'
 
 global img_index
 global img_updates
+global begun
 
 npz_file = np.load('./imgs_to_check.npz')
 img_paths = npz_file['paths']
-img_paths = img_paths[:5]
 img_ids = npz_file['ids']
 
 
@@ -29,15 +29,28 @@ win.configure(bg='black')
 panel = tk.Label(win)
 panel.pack()
 
-img_updates = np.zeros((len(img_paths), 2))
+if os.path.exists('./{}/reannotations.npy'.format(NAME)):
+    img_updates = np.load('./{}/reannotations.npy'.format(NAME))
+    img_index = np.where(img_updates[:, 0] == 0)[0][0]
+    begun = True
+    print("HERE")
+else:
+    img_updates = np.zeros((len(img_paths), 2))
+    img_index = 0
+    begun = False
 
-img_index = 0
+img_path = img_paths[0]
+rating = img_path.split('/')[-1].split('-')[-1][:-4]
+text = tk.Label(win, text='Old rating: {}'.format(rating))
+text.pack()
 
 
 def next_img():
     global img_index
     global img_updates
     try:
+        print("Image {} of {}".format(img_index + 1, len(img_paths)))
+        np.save('./{}/reannotations.npy'.format(NAME), img_updates)
         img_path = img_paths[img_index]
     except:
         np.save('./{}/reannotations.npy'.format(NAME), img_updates)
@@ -56,9 +69,9 @@ def next_img():
     img = ImageTk.PhotoImage(img)
     panel.img = img  # keep a reference so it's not garbage collected
     panel['image'] = img
-    if img_index > 0:
-        rating = img_path.split('/')[-1].split('-')[-1][:-4]
-        text.config(text='Old rating: {}'.format(rating))
+    # if img_index > 0 and begun == False:
+    rating = img_path.split('/')[-1].split('-')[-1][:-4]
+    text.config(text='Old rating: {}'.format(rating))
 
 
 def save_annotation_enter(event):
@@ -71,7 +84,7 @@ def save_annotation_enter(event):
     img_updates[img_index, 1] = index_to_add
     img_index += 1
     annotation_entry.delete(0, tk.END)
-    annotation_entry.insert(0, 'Enter new rating')
+    annotation_entry.focus_set()
     next_img()
 
 
@@ -85,17 +98,14 @@ def save_annotation_click():
     img_updates[img_index, 1] = index_to_add
     img_index += 1
     annotation_entry.delete(0, tk.END)
+    annotation_entry.focus_set()
     next_img()
 
 
 next_img()
 
-
-img_path = img_paths[0]
-rating = img_path.split('/')[-1].split('-')[-1][:-4]
-text = tk.Label(win, text='Old rating: {}'.format(rating))
-text.pack()
 annotation_entry = tk.Entry(win)
+annotation_entry.focus_set()
 annotation_entry.pack(expand=True, side='top')
 btn = tk.Button(win, text='Next', font=(
     'calibri', 16, 'bold'), command=save_annotation_click)
